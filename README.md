@@ -94,6 +94,8 @@ All API calls are metered via the **x402 protocol** on **Base** (Coinbase L2):
 
 No API key. No contract. No KYC. Any agent with a wallet can call this.
 
+<img src="images/agent-wallet.png" width="350" alt="Agentic Wallet — live USDC transactions for each API call" />
+
 ---
 
 ## Inspired by AWS...
