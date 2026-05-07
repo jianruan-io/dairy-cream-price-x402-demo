@@ -8,6 +8,12 @@ Built for the **Coinbase × AWS Agentic Hackathon — Consensus Miami 2026**.
 
 ---
 
+## Demo Video Walk Through
+
+https://youtu.be/BVHde-owoYo
+
+
+---
 ## The Problem
 
 Meet Sneehee. She runs **Gallivant Ice Cream** in Houston — sells to Walmart and Kroger. Dairy is 40% of her COGS.
@@ -26,24 +32,22 @@ Most SMBs have none.
 
 Make it **easier for AI agents to help Sneehee** :)
 
-We built internal data pipelines to ingest USDA cream price data and run deterministic time-series forecasts — originally as infrastructure for our own invoice factoring underwriting. A cost center.
-
-Now we're opening it up as an API. Any AI agent can call it, pay pennies in USDC, and get clean structured data + forecasts in under 2 seconds.
-
-> 📹 Demo video coming soon
+During this hackathon, we built a pay-per-call commodity intelligence API from scratch — ingesting 30 years of USDA cream price data, running ARIMA time-series forecasts and 10,000 Monte Carlo simulations, and exposing it all as clean structured endpoints any AI agent can call. Pay pennies in USDC and get structured data + forecasts in under 2 seconds.
 
 ---
 
 ## Available APIs
+
+![Dairy Cream Price API](images/dairy-api-image.png)
 
 Now AI agents can provide much better answers with **high quality data** :)
 
 | Endpoint | Price | What you get |
 |----------|-------|--------------|
 | `GET /dairy/cream/price` | **$0.01** | Spot price for current week |
-| `GET /dairy/cream/history` | **$0.10** | Weekly USDA cream prices from 1996 to April 2026 — clean, structured, ready to use |
-| `GET /dairy/cream/forecast` | **$0.25** | ARIMA model to forecast most likely outcome |
-| `GET /dairy/cream/simulation` | **$0.50** | 10k Monte Carlo simulations for possible outcomes |
+| `GET /dairy/cream/history` | **$0.05** | Weekly USDA cream prices from 1996 to April 2026 — clean, structured, ready to use |
+| `GET /dairy/cream/forecast` | **$0.10** | ARIMA model to forecast most likely outcome |
+| `GET /dairy/cream/simulation` | **$0.15** | 10k Monte Carlo simulations for possible outcomes |
 
 Sample forecast response:
 ```json
@@ -127,6 +131,8 @@ When an agent asks *"What's the cream price outlook?"* and Orbbit's API gives th
 ---
 
 ## Architecture
+
+![Architecture Diagram](images/architecture-diagram.png)
 
 ```
 USDA AMS website (weekly cream prices, fetched 1996–April 2026)

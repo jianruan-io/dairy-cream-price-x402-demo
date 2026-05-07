@@ -30,7 +30,23 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Dairy Cream Price API",
-    description="CPG dairy commodity intelligence for AI agents. Pay per call via x402 on Base.",
+    description=(
+        "CPG dairy commodity intelligence for AI agents. Pay per call via x402 on Base.\n\n"
+        "## Endpoints\n\n"
+        "| Route | Cost | Description |\n"
+        "|---|---|---|\n"
+        "| `GET /dairy/cream/price` | $0.01 | Latest spot price (this week) |\n"
+        "| `GET /dairy/cream/history` | $0.05 | Weekly price series — up to 1,560 weeks (~30 yrs) |\n"
+        "| `GET /dairy/cream/forecast` | $0.10 | ARIMA point forecast at custom horizons |\n"
+        "| `GET /dairy/cream/simulation` | $0.15 | Monte Carlo risk envelope (10k paths) |\n\n"
+        "## Query Parameters\n\n"
+        "**`/dairy/cream/history`**\n"
+        "- `weeks` *(int, default 52, min 4, max 1560)* — number of trailing weeks to return.\n"
+        "  - 1 year ≈ 52 weeks · 5 years ≈ 260 · 10 years ≈ 520 · 25 years ≈ 1300 · 30 years = 1560\n\n"
+        "**`/dairy/cream/forecast`** and **`/dairy/cream/simulation`**\n"
+        "- `horizons` *(str, default \"30,60,90\")* — comma-separated forecast horizons in **days** (max 730 per horizon).\n"
+        "  - Examples: `30` · `90,180` · `30,60,90,180,365`"
+    ),
     version="0.1.0",
     lifespan=lifespan,
 )
@@ -76,7 +92,12 @@ def prices_dep():
 # GET /dairy/cream/price  —  $0.01  —  this week's spot price
 # ---------------------------------------------------------------------------
 
-@app.get("/dairy/cream/price", response_model=CreamPriceResponse)
+@app.get(
+    "/dairy/cream/price",
+    response_model=CreamPriceResponse,
+    summary="Latest spot price",
+    description="Returns the most recent weekly spot price for Class II cream (Central U.S.). No parameters required. Cost: $0.01.",
+)
 async def cream_price(df=Depends(df_dep)) -> CreamPriceResponse:
     row = df.iloc[-1]
     return CreamPriceResponse(**{
@@ -97,9 +118,30 @@ async def cream_price(df=Depends(df_dep)) -> CreamPriceResponse:
 # GET /dairy/cream/history  —  $0.05  —  normalized weekly series
 # ---------------------------------------------------------------------------
 
-@app.get("/dairy/cream/history", response_model=CreamHistoryResponse)
+@app.get(
+    "/dairy/cream/history",
+    response_model=CreamHistoryResponse,
+    summary="Weekly price history",
+    description=(
+        "Returns a weekly price series going back up to 1,560 weeks (~30 years). "
+        "Cost: $0.05.\n\n"
+        "**Parameter:** `weeks` (integer)\n"
+        "- Default: `52` (one year)\n"
+        "- Min: `4` · Max: `1560`\n"
+        "- Quick reference: 52=1yr, 260=5yr, 520=10yr, 1300=25yr, 1560=30yr"
+    ),
+)
 async def cream_history(
-    weeks: int = Query(52, ge=4, le=1560, description="Number of weeks to return"),
+    weeks: int = Query(
+        52,
+        ge=4,
+        le=1560,
+        description=(
+            "Trailing weeks of weekly price data to return. "
+            "Min 4, max 1560 (~30 years). "
+            "Examples: 52 = 1 yr, 260 = 5 yrs, 520 = 10 yrs, 1300 = 25 yrs."
+        ),
+    ),
     df=Depends(df_dep),
 ) -> CreamHistoryResponse:
     subset = df.tail(weeks)
@@ -127,9 +169,27 @@ async def cream_history(
 # GET /dairy/cream/forecast  —  $0.10  —  ARIMA point forecast
 # ---------------------------------------------------------------------------
 
-@app.get("/dairy/cream/forecast", response_model=CreamForecastResponse)
+@app.get(
+    "/dairy/cream/forecast",
+    response_model=CreamForecastResponse,
+    summary="ARIMA point forecast",
+    description=(
+        "Returns ARIMA-based price forecasts for one or more forward horizons. "
+        "Cost: $0.10.\n\n"
+        "**Parameter:** `horizons` (string)\n"
+        "- Comma-separated integers representing **days** ahead (each 1–730)\n"
+        "- Default: `'30,60,90'`\n"
+        "- Examples: `'30'` · `'90,180'` · `'30,60,90,180,365'`"
+    ),
+)
 async def cream_forecast(
-    horizons: str = Query("30,60,90", description="Comma-separated forecast horizons in days"),
+    horizons: str = Query(
+        "30,60,90",
+        description=(
+            "Comma-separated forecast horizons in days (integers, each 1–730). "
+            "Examples: '30' · '90,180' · '30,60,90,180,365'."
+        ),
+    ),
     prices=Depends(prices_dep),
     df=Depends(df_dep),
 ) -> CreamForecastResponse:
@@ -163,9 +223,27 @@ async def cream_forecast(
 # GET /dairy/cream/simulation  —  $0.15  —  Monte Carlo risk envelope
 # ---------------------------------------------------------------------------
 
-@app.get("/dairy/cream/simulation", response_model=CreamSimulationResponse)
+@app.get(
+    "/dairy/cream/simulation",
+    response_model=CreamSimulationResponse,
+    summary="Monte Carlo risk simulation",
+    description=(
+        "Runs a 10,000-path Monte Carlo GBM simulation and returns percentile bands (p10–p90) "
+        "for each requested horizon. Cost: $0.15.\n\n"
+        "**Parameter:** `horizons` (string)\n"
+        "- Comma-separated integers representing **days** ahead (each 1–730)\n"
+        "- Default: `'30,60,90'`\n"
+        "- Examples: `'30'` · `'90,180'` · `'30,60,90,180,365'`"
+    ),
+)
 async def cream_simulation(
-    horizons: str = Query("30,60,90", description="Comma-separated forecast horizons in days"),
+    horizons: str = Query(
+        "30,60,90",
+        description=(
+            "Comma-separated forecast horizons in days (integers, each 1–730). "
+            "Examples: '30' · '90,180' · '30,60,90,180,365'."
+        ),
+    ),
     prices=Depends(prices_dep),
     df=Depends(df_dep),
 ) -> CreamSimulationResponse:

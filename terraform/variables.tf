@@ -34,7 +34,7 @@ variable "x402_pay_to_address" {
 
 variable "x402_network" {
   type    = string
-  default = "base"
+  default = "eip155:8453"
 }
 
 variable "cdp_api_key_id" {

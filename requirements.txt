@@ -2,6 +2,7 @@ fastapi
 uvicorn[standard]
 pydantic-settings
 python-dotenv
+mangum
 x402[extensions]
 cdp-sdk
 pandas
