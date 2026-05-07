@@ -5,8 +5,8 @@ class Settings(BaseSettings):
     # CDP facilitator required for Bazaar discovery indexing
     x402_facilitator_url: str = "https://api.cdp.coinbase.com/platform/v2/x402"
     x402_pay_to_address: str = ""
-    # Named format: base = Base mainnet, base-sepolia = Base Sepolia
-    x402_network: str = "base"
+    # CAIP-2 format — see .env.example for options
+    x402_network: str = "eip155:8453"
 
     # CDP API keys — required for authenticated CDP facilitator requests
     cdp_api_key_id: str = ""

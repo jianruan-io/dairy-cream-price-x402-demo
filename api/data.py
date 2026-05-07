@@ -40,4 +40,4 @@ def get_df() -> pd.DataFrame:
 
 
 def get_prices() -> np.ndarray:
-    return get_df()["price"].values
+    return get_df()["price"].to_numpy(dtype=float)

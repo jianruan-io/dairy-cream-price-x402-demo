@@ -1,22 +1,30 @@
+import os
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI, HTTPException, Query
-from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
-from x402.http.middleware import PaymentMiddlewareASGI
+from dotenv import load_dotenv
+load_dotenv()  # ensure CDP_API_KEY_ID / CDP_API_KEY_SECRET are in os.environ
 
-from api.config import settings
-from api.data import get_df, get_prices
-from api.models import get_model_summary, point_forecast, risk_simulation, warm_up
-from api.schemas import CreamForecastResponse, CreamHistoryResponse, CreamPriceResponse, CreamSimulationResponse
-from api.x402 import build_routes, build_x402_server
+import base64, json, logging as _logging  # noqa: E402
+from fastapi import Depends, FastAPI, HTTPException, Query, Request  # noqa: E402
+from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware  # noqa: E402
+from x402.http.middleware import PaymentMiddlewareASGI  # noqa: E402
+
+from api.config import settings  # noqa: E402
+from api.data import get_df, get_prices  # noqa: E402
+from api.models import get_model_summary, point_forecast, risk_simulation, warm_up  # noqa: E402
+from api.schemas import CreamForecastResponse, CreamHistoryResponse, CreamPriceResponse, CreamSimulationResponse  # noqa: E402
+from api.x402 import build_routes, build_x402_server  # noqa: E402
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    import asyncio
     import logging
-    asyncio.get_event_loop().run_in_executor(None, warm_up, get_prices())
-    logging.getLogger("uvicorn.error").info("Docs: http://localhost:8000/docs")
+    log = logging.getLogger("uvicorn.error")
+    log.info("CDP_API_KEY_ID set: %s", bool(os.getenv("CDP_API_KEY_ID")))
+    log.info("CDP_API_KEY_SECRET set: %s", bool(os.getenv("CDP_API_KEY_SECRET")))
+    warm_up(get_prices())
+    log.info("Docs: http://localhost:8000/docs")
     yield
 
 
@@ -31,12 +39,26 @@ app = FastAPI(
 # so request.url reflects the public HTTPS URL rather than http://localhost
 app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
+_dbg = _logging.getLogger("uvicorn.error")
+
+class _X402DebugMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        for name, value in request.headers.items():
+            if "payment" in name.lower() or "x402" in name.lower() or "signature" in name.lower():
+                try:
+                    decoded = json.loads(base64.b64decode(value + "=="))
+                    _dbg.info(">> %s: %s", name, json.dumps(decoded, indent=2))
+                except Exception:
+                    _dbg.info(">> %s (raw): %s", name, value[:500])
+        return await call_next(request)
+
 if not settings.dev_bypass_x402 and settings.x402_pay_to_address:
-    app.add_middleware(
+    app.add_middleware(  # type: ignore[arg-type]
         PaymentMiddlewareASGI,
         routes=build_routes(),
         server=build_x402_server(),
     )
+    app.add_middleware(_X402DebugMiddleware)  # outermost — logs before PaymentMiddleware sees it
 
 
 # ---------------------------------------------------------------------------

@@ -1,11 +1,10 @@
 fastapi
 uvicorn[standard]
 pydantic-settings
-x402
-pmdarima
+python-dotenv
+x402[extensions]
+cdp-sdk
 pandas
 numpy
-pyjwt
-cryptography
+statsmodels
 eth-account
-mangum

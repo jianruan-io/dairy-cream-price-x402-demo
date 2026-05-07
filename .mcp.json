@@ -1,7 +1,8 @@
 {
   "mcpServers": {
     "coinbase-cdp": {
-      "url": "https://docs.cdp.coinbase.com/mcp"
+      "type": "http",
+      "url": "https://coinbase-prod.main.mintlify.me/mcp"
     }
   }
 }
