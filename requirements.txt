@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+pydantic-settings
+x402
+pmdarima
+pandas
+numpy
+pyjwt
+cryptography
+eth-account
+mangum

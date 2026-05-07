@@ -1,0 +1,10 @@
+aws_region   = "us-east-1"
+app_name     = "dairy-cream-price-api"
+
+x402_pay_to_address = "0xYOUR_WALLET_ADDRESS"
+x402_network        = "base"
+
+cdp_api_key_id     = "your-cdp-key-id"
+cdp_api_key_secret = "-----BEGIN EC PRIVATE KEY-----\n...\n-----END EC PRIVATE KEY-----"
+
+dev_bypass_x402 = false

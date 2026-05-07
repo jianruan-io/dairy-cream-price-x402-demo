@@ -1,0 +1,7 @@
+{
+  "order": [1, 1, 1],
+  "seasonal_order": [1, 0, 1, 52],
+  "aic": -2420.19,
+  "data": "usda_cream_classii_midwest_1996_2026.csv",
+  "generated_by": "scripts/find_arima_params.py"
+}
